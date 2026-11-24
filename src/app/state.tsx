@@ -16,20 +16,22 @@ const initialState: GlobalSafetyState = {
 function stateReducer(state: GlobalSafetyState, action: Action): GlobalSafetyState {
   switch (action.type) {
     case 'SET_CHAPTER': {
-      if (state.chapter === action.payload) return state;
-      // 切幕重置：关闭临时弹窗、清空局部临时激活节点，保证无前序动画遮挡残留
+      if (state.chapter === action.payload) return state; // 幂等检查：重复点击同一章节不产生额外开销
       return {
         ...state,
         chapter: action.payload,
-        openPanel: 'none',
-        activeFaultNode: null,
+        openPanel: 'none',       // 切幕立即收起侧边抽屉，防止遮挡悬挂
+        activeFaultNode: null,   // 清理前序激活节点
       };
     }
     case 'SET_FLIGHT_PHASE':
+      if (state.flightPhase === action.payload) return state;
       return { ...state, flightPhase: action.payload };
     case 'SET_SUBSYSTEM':
+      if (state.selectedSubsystem === action.payload) return state;
       return { ...state, selectedSubsystem: action.payload };
     case 'SET_SCENARIO':
+      if (state.selectedScenario === action.payload) return state;
       return {
         ...state,
         selectedScenario: action.payload,
@@ -77,7 +79,23 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (mediaQuery.matches) {
       dispatch({ type: 'TOGGLE_MOTION_MODE' });
     }
+    const listener = (e: MediaQueryListEvent) => {
+      if (e.matches && state.motionMode !== 'reduced') {
+        dispatch({ type: 'TOGGLE_MOTION_MODE' });
+      }
+    };
+    mediaQuery.addEventListener('change', listener);
+    return () => mediaQuery.removeEventListener('change', listener);
   }, []);
+
+  // 切幕时即时瞬移滚回顶部并重置视口，避免长页面残余滚动位置
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    const mainEl = document.getElementById('main-content');
+    if (mainEl) {
+      mainEl.focus();
+    }
+  }, [state.chapter]);
 
   // 同步 CSS 类到 body 根元素
   useEffect(() => {
@@ -99,7 +117,6 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // 全局键盘快捷键导航 (0-5 键切幕，Esc 键跳过或关闭面板)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // 避免输入框内部打字冲突
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
         return;
       }
