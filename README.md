@@ -70,8 +70,8 @@ npm run build
 
 ### 飞书收集页提交建议说明：
 - **作业名称**：课程作业-2 · 《超越重力：天空的代价》系统安全工程交互展
-- **GitHub 仓库链接**：`https://github.com/<your-username>/<repo-name>`
-- **在线演示 Pages 链接**：`https://<your-username>.github.io/<repo-name>/`
+- **GitHub 仓库链接**：`https://github.com/SorenMagnus/15230326_second`
+- **在线演示 Pages 链接**：`https://sorenmagnus.github.io/15230326_second/`
 - **说明摘要**：全站 100% 纯静态运行，无运行时大模型调用与 API Key，严格实行四级事实标签，包含完整的 FHA / FMEA / FTA / STPA 分析，适配桌面端与移动端响应式，支持无障碍及低动效模式。
 
 ---
