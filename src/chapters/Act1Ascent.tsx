@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSafetyState } from '../app/state';
 import { FlightPhaseId } from '../app/types';
 import { EvidenceBadge } from '../components/EvidenceBadge';
+import { FhaTable } from '../components/FhaTable';
 
 interface PhaseDetail {
   id: FlightPhaseId;
@@ -75,6 +76,7 @@ const PHASES: PhaseDetail[] = [
 
 export const Act1Ascent: React.FC = () => {
   const { state, dispatch, goToChapter } = useSafetyState();
+  const [showFhaTable, setShowFhaTable] = useState(false);
   const currentPhase = PHASES.find(p => p.id === state.flightPhase) || PHASES[0];
 
   return (
@@ -142,12 +144,20 @@ export const Act1Ascent: React.FC = () => {
         </div>
 
         <div className="card-bottom-actions">
-          <span className="link-note">该工况对应的系统物理架构与控制链路解析：</span>
+          <button
+            className="toggle-fha-btn"
+            onClick={() => setShowFhaTable(!showFhaTable)}
+          >
+            {showFhaTable ? '收起功能危害分析台账 ▲' : '展开系统级 FHA 完整数据台账 ▼'}
+          </button>
           <button className="text-cta-btn" onClick={() => goToChapter(2)}>
-            深入子系统内部剖析 (进入 ACT II) →
+            深入子系统内部技术解剖 (进入 ACT II) →
           </button>
         </div>
       </div>
+
+      {/* 嵌入式 FHA 数据驱动台账 */}
+      {showFhaTable && <FhaTable />}
 
       <style>{`
         .chapter-view {
@@ -310,9 +320,19 @@ export const Act1Ascent: React.FC = () => {
           border-top: 1px solid var(--color-graphite-border);
           padding-top: 16px;
         }
-        .link-note {
+        .toggle-fha-btn {
+          background: rgba(78, 122, 148, 0.15);
+          border: 1px solid var(--color-tech-blue);
+          color: #8ec2e6;
+          padding: 8px 14px;
+          border-radius: 4px;
           font-size: 13px;
-          color: var(--color-aluminum);
+          font-weight: 600;
+          transition: all var(--transition-nav);
+        }
+        .toggle-fha-btn:hover {
+          background: var(--color-tech-blue);
+          color: var(--color-graphite);
         }
         .text-cta-btn {
           color: var(--color-amber);

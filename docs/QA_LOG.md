@@ -25,4 +25,5 @@
 | **Phase 1** | 项目工程骨架搭建 | Vite + React + TS 纯静态结构正常安装与编译 | `tsc && vite build` 549ms 编译通过，0 警告 0 报错 | PASS | Frontend Lead |
 | **Phase 1** | 路由与六幕键盘导航 | 数字键 0-5 及点击可平滑无闪烁切幕 | 支持数字键 0-5 快速导航及 Esc 跳过/关闭弹窗 | PASS | QA Lead |
 | **Phase 1** | 响应式 360px 与 1920px | 无水平滚动溢出，排版自适应 | 采用 Flex/Grid + `overflow-x: hidden`，无横向溢出 | PASS | QA Lead |
-| **Phase 1** | 静态构建产物安全审计 | `dist/` 无外链与 API Key，纯静态 | 经正则敏感词扫描，0 秘钥、0 外部 AI 调用、纯相对路径 | PASS | Security Lead |
+| **Phase 2** | 全量静态安全数据注入 | FHA/FMEA/FTA/STPA 完整数据驱动台账就绪 | 4 种方法学数据结构全部注入并通过严格类型检查 | PASS | Safety Lead |
+| **Phase 2** | 编译构建验证 | 注入全量安全数据后 `npm run build` | `tsc && vite build` 503ms 通过，46 个模块全绿 | PASS | Frontend Lead |

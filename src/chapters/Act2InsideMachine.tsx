@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSafetyState } from '../app/state';
 import { SubsystemId } from '../app/types';
 import { EvidenceBadge } from '../components/EvidenceBadge';
+import { FmeaTable } from '../components/FmeaTable';
 
 interface SubsystemData {
   id: SubsystemId;
@@ -86,6 +87,7 @@ const SUBSYSTEMS: SubsystemData[] = [
 
 export const Act2InsideMachine: React.FC = () => {
   const { state, dispatch, goToChapter } = useSafetyState();
+  const [showFmea, setShowFmea] = useState(false);
   const activeSub = SUBSYSTEMS.find(s => s.id === state.selectedSubsystem) || SUBSYSTEMS[0];
 
   return (
@@ -131,7 +133,6 @@ export const Act2InsideMachine: React.FC = () => {
           <div className="svg-frame" role="img" aria-label={`子系统拓扑图 - ${activeSub.name}`}>
             <svg viewBox="0 0 600 340" className="tech-schematic-svg">
               <rect width="600" height="340" fill="#0E141B" rx="8" stroke="rgba(184, 193, 200, 0.15)" />
-              {/* 网格参考背景 */}
               <defs>
                 <pattern id="smallGrid" width="20" height="20" patternUnits="userSpaceOnUse">
                   <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(184, 193, 200, 0.04)" strokeWidth="0.5" />
@@ -139,16 +140,14 @@ export const Act2InsideMachine: React.FC = () => {
               </defs>
               <rect width="600" height="340" fill="url(#smallGrid)" />
 
-              {/* 核心机身框架线 */}
               <ellipse cx="300" cy="170" rx="220" ry="80" fill="none" stroke="rgba(184, 193, 200, 0.2)" strokeWidth="1" strokeDasharray="4 4" />
               
-              {/* 高亮所选子系统拓扑位置 */}
               {activeSub.id === 'propulsion' && (
                 <g className="highlight-group">
                   <circle cx="120" cy="130" r="28" fill="rgba(217, 154, 69, 0.2)" stroke="#D99A45" strokeWidth="2" />
-                  <text x="120" y="135" fill="#F2EFE7" fontSize="11" textAnchor="middle">翼尖旋翼 #1</text>
+                  <text x="120" y="135" fill="#F2EFE7" fontSize="11" textAnchor="middle">旋翼 #1 (左前)</text>
                   <circle cx="480" cy="130" r="28" fill="rgba(217, 154, 69, 0.2)" stroke="#D99A45" strokeWidth="2" />
-                  <text x="480" y="135" fill="#F2EFE7" fontSize="11" textAnchor="middle">翼尖旋翼 #6</text>
+                  <text x="480" y="135" fill="#F2EFE7" fontSize="11" textAnchor="middle">旋翼 #6 (右前)</text>
                   <circle cx="210" cy="110" r="24" fill="rgba(217, 154, 69, 0.15)" stroke="#D99A45" strokeWidth="1.5" />
                   <circle cx="390" cy="110" r="24" fill="rgba(217, 154, 69, 0.15)" stroke="#D99A45" strokeWidth="1.5" />
                   <circle cx="260" cy="220" r="22" fill="rgba(217, 154, 69, 0.15)" stroke="#D99A45" strokeWidth="1.5" />
@@ -190,7 +189,7 @@ export const Act2InsideMachine: React.FC = () => {
               )}
             </svg>
           </div>
-          <p className="diagram-caption">图 2.1: {activeSub.name} 物理安装拓扑与隔离边界示意图</p>
+          <p className="diagram-caption">图 2.1: {activeSub.name} 物理拓扑与隔离边界架构</p>
         </div>
 
         {/* 详细参数与失效防护联动 */}
@@ -215,11 +214,19 @@ export const Act2InsideMachine: React.FC = () => {
             <p className="info-text-dim">{activeSub.evidenceNote}</p>
           </div>
 
-          <button className="link-fmea-btn" onClick={() => goToChapter(3)}>
-            观察该部件在故障场景中的连锁因果链 (进入 ACT III) →
-          </button>
+          <div className="panel-actions-row">
+            <button className="toggle-fmea-btn" onClick={() => setShowFmea(!showFmea)}>
+              {showFmea ? '收起 FMEA 部件台账 ▲' : '展开系统级 FMEA 部件台账 ▼'}
+            </button>
+            <button className="link-fmea-btn" onClick={() => goToChapter(3)}>
+              推演该部件故障场景 (ACT III) →
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* 嵌入式 FMEA 数据台账 */}
+      {showFmea && <FmeaTable />}
 
       <style>{`
         .subsystem-tabs {
@@ -352,14 +359,34 @@ export const Act2InsideMachine: React.FC = () => {
           color: var(--color-aluminum);
           line-height: 1.5;
         }
-        .link-fmea-btn {
+        .panel-actions-row {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
           margin-top: 6px;
-          padding: 12px;
+        }
+        .toggle-fmea-btn {
+          padding: 10px 14px;
+          background: rgba(78, 122, 148, 0.15);
+          border: 1px solid var(--color-tech-blue);
+          color: #8ec2e6;
+          font-weight: 600;
+          font-size: 13px;
+          border-radius: 6px;
+          transition: all var(--transition-nav);
+        }
+        .toggle-fmea-btn:hover {
+          background: var(--color-tech-blue);
+          color: var(--color-graphite);
+        }
+        .link-fmea-btn {
+          flex: 1;
+          padding: 10px 14px;
           background: rgba(217, 154, 69, 0.12);
           border: 1px solid var(--color-amber);
           color: var(--color-amber);
           font-weight: 600;
-          font-size: 13.5px;
+          font-size: 13px;
           border-radius: 6px;
           text-align: center;
           transition: all var(--transition-nav);
