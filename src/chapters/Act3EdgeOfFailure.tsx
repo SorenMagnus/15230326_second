@@ -4,12 +4,52 @@ import { CORE_RISK_RECORDS } from '../safety/data';
 import { EvidenceBadge } from '../components/EvidenceBadge';
 import { FtaTreeViewer } from '../components/FtaTreeViewer';
 import { StpaDiagram } from '../components/StpaDiagram';
+import { RiskPropagationGraph } from '../visuals/RiskPropagationGraph';
 
 export const Act3EdgeOfFailure: React.FC = () => {
   const { state, dispatch, goToChapter } = useSafetyState();
   const [analysisView, setAnalysisView] = useState<'causal' | 'fta' | 'stpa'>('causal');
+  const [activeNodeIdx, setActiveNodeIdx] = useState<number>(0);
 
   const currentScenario = CORE_RISK_RECORDS.find(s => s.id === state.selectedScenario) || CORE_RISK_RECORDS[0];
+
+  const handleScenarioChange = (scenarioId: string) => {
+    dispatch({ type: 'SET_SCENARIO', payload: scenarioId as any });
+    setActiveNodeIdx(0);
+  };
+
+  const getNodeDetailText = (index: number) => {
+    switch (index) {
+      case 0:
+        return {
+          title: '节点 01：始发危险源 (Hazard Trigger)',
+          desc: currentScenario.hazard,
+          extra: `运行情境：${currentScenario.operationalContext}`,
+        };
+      case 1:
+        return {
+          title: '节点 02：物理/逻辑致因机制 (Failure Mechanism)',
+          desc: currentScenario.failureMechanism,
+          extra: '涉及系统边界与内部元器件故障模式。',
+        };
+      case 2:
+        return {
+          title: '节点 03：跨系统连锁扩散 (System-level Propagation)',
+          desc: currentScenario.propagationNodes.join(' ➔ '),
+          extra: '物理状态变化向控制回路与整机姿态动力学传导。',
+        };
+      case 3:
+        return {
+          title: '节点 04：最终飞机级后果 (Flight Consequence)',
+          desc: currentScenario.consequence,
+          extra: `危害定级：${currentScenario.severity}`,
+        };
+      default:
+        return { title: '', desc: '', extra: '' };
+    }
+  };
+
+  const activeNodeInfo = getNodeDetailText(activeNodeIdx);
 
   return (
     <section className="chapter-view" aria-labelledby="act3-title">
@@ -57,7 +97,7 @@ export const Act3EdgeOfFailure: React.FC = () => {
                 <button
                   key={sc.id}
                   className={`scenario-btn ${isSelected ? 'active' : ''}`}
-                  onClick={() => dispatch({ type: 'SET_SCENARIO', payload: sc.id as any })}
+                  onClick={() => handleScenarioChange(sc.id)}
                 >
                   <span className="sc-id">{sc.id}</span>
                   <span className="sc-title">{sc.hazard.slice(0, 22)}...</span>
@@ -75,19 +115,45 @@ export const Act3EdgeOfFailure: React.FC = () => {
               <EvidenceBadge type={currentScenario.evidenceStatus} sourceId={currentScenario.sources[0]} />
             </div>
 
-            {/* 阶段式因果链 */}
+            {/* 动态 SVG 因果拓扑流图 */}
+            <RiskPropagationGraph
+              scenario={currentScenario}
+              activeNodeIndex={activeNodeIdx}
+              onSelectNodeIndex={(idx) => setActiveNodeIdx(idx)}
+            />
+
+            {/* 点击节点激活的实时数据与深度解释面板 */}
+            <div className="node-active-panel">
+              <div className="node-panel-header">
+                <span className="active-tag">当前聚焦推演阶段</span>
+                <h4 className="node-panel-title">{activeNodeInfo.title}</h4>
+              </div>
+              <p className="node-panel-desc">{activeNodeInfo.desc}</p>
+              <span className="node-panel-extra">{activeNodeInfo.extra}</span>
+            </div>
+
+            {/* 阶段式因果链卡片 */}
             <div className="propagation-chain">
-              <div className="chain-step step-hazard">
+              <div
+                className={`chain-step step-hazard ${activeNodeIdx === 0 ? 'selected-step' : ''}`}
+                onClick={() => setActiveNodeIdx(0)}
+              >
                 <div className="step-tag">01 · 始发危险源 (Hazard)</div>
                 <div className="step-content">{currentScenario.hazard}</div>
               </div>
 
-              <div className="chain-step step-mech">
+              <div
+                className={`chain-step step-mech ${activeNodeIdx === 1 ? 'selected-step' : ''}`}
+                onClick={() => setActiveNodeIdx(1)}
+              >
                 <div className="step-tag">02 · 微观致因机理 (Mechanism)</div>
                 <div className="step-content">{currentScenario.failureMechanism}</div>
               </div>
 
-              <div className="chain-step step-prop">
+              <div
+                className={`chain-step step-prop ${activeNodeIdx === 2 ? 'selected-step' : ''}`}
+                onClick={() => setActiveNodeIdx(2)}
+              >
                 <div className="step-tag">03 · 系统级连锁传播 (Propagation)</div>
                 <ul className="prop-list">
                   {currentScenario.propagationNodes.map((node, idx) => (
@@ -99,7 +165,10 @@ export const Act3EdgeOfFailure: React.FC = () => {
                 </ul>
               </div>
 
-              <div className="chain-step step-conseq">
+              <div
+                className={`chain-step step-conseq ${activeNodeIdx === 3 ? 'selected-step' : ''}`}
+                onClick={() => setActiveNodeIdx(3)}
+              >
                 <div className="step-tag">04 · 最终系统后果 (Consequence)</div>
                 <div className="step-content text-risk">{currentScenario.consequence}</div>
                 <div className="severity-badge">{currentScenario.severity}</div>
@@ -234,6 +303,44 @@ export const Act3EdgeOfFailure: React.FC = () => {
           margin-top: 4px;
           display: block;
         }
+        .node-active-panel {
+          background: var(--color-graphite-elevated);
+          border: 1px solid var(--color-amber);
+          border-radius: 6px;
+          padding: 16px 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          box-shadow: 0 0 16px rgba(217, 154, 69, 0.12);
+        }
+        .node-panel-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .active-tag {
+          font-size: 10.5px;
+          background: rgba(217, 154, 69, 0.2);
+          color: var(--color-amber);
+          padding: 2px 6px;
+          border-radius: 3px;
+          font-weight: bold;
+          font-family: var(--font-family-mono);
+        }
+        .node-panel-title {
+          font-size: 14.5px;
+          color: var(--color-warm-white);
+          font-weight: 700;
+        }
+        .node-panel-desc {
+          font-size: 13.5px;
+          color: var(--color-warm-white);
+          line-height: 1.6;
+        }
+        .node-panel-extra {
+          font-size: 12px;
+          color: var(--color-aluminum);
+        }
         .propagation-chain {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -247,6 +354,15 @@ export const Act3EdgeOfFailure: React.FC = () => {
           display: flex;
           flex-direction: column;
           gap: 8px;
+          cursor: pointer;
+          transition: all var(--transition-nav);
+        }
+        .chain-step:hover {
+          background: rgba(184, 193, 200, 0.08);
+        }
+        .chain-step.selected-step {
+          border-top-color: var(--color-amber) !important;
+          box-shadow: 0 0 12px var(--color-amber-glow);
         }
         .step-hazard {
           border-top-color: var(--color-amber);
