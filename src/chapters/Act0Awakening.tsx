@@ -13,9 +13,9 @@ export const Act0Awakening: React.FC = () => {
       return;
     }
 
-    const t1 = setTimeout(() => setTimelineStep(1), 350);  // 轮廓光侧照
-    const t2 = setTimeout(() => setTimelineStep(2), 1100); // 标题与副标淡入
-    const t3 = setTimeout(() => setTimelineStep(3), 1900); // 交互控制按钮就绪
+    const t1 = setTimeout(() => setTimelineStep(1), 250);  // 轮廓光侧照
+    const t2 = setTimeout(() => setTimelineStep(2), 800);  // 标题与副标淡入
+    const t3 = setTimeout(() => setTimelineStep(3), 1400); // 交互控制按钮完全就绪
 
     return () => {
       clearTimeout(t1);
@@ -30,6 +30,15 @@ export const Act0Awakening: React.FC = () => {
 
   return (
     <section className="act0-viewport" aria-labelledby="act0-title">
+      {/* 快捷常驻跳过按钮（无论动画播到哪一帧，用户随时可一键瞬时跳过，彻底消除强迫等待） */}
+      <button
+        className="persistent-skip-floating-btn"
+        onClick={handleSkipOrEnter}
+        aria-label="跳过片头动画"
+      >
+        跳过片头 (Skip) ➔
+      </button>
+
       {/* 电影式深色背景与侧逆光氛围层 */}
       <div className={`scene-backdrop step-${timelineStep}`}>
         <div className="rim-light-beam" aria-hidden="true" />
@@ -112,7 +121,7 @@ export const Act0Awakening: React.FC = () => {
           </p>
         </div>
 
-        {/* 交互按钮组（任意时刻均可点击，支持键盘即时响应） */}
+        {/* 交互按钮组 */}
         <div className={`hero-actions step-${timelineStep}`}>
           <button
             className="action-enter-btn"
@@ -127,7 +136,7 @@ export const Act0Awakening: React.FC = () => {
           <button
             className="action-skip-btn"
             onClick={handleSkipOrEnter}
-            aria-label="跳过片头"
+            aria-label="跳过片头进入正文"
           >
             跳过片头 (Skip)
           </button>
@@ -151,6 +160,26 @@ export const Act0Awakening: React.FC = () => {
           overflow: hidden;
           width: 100%;
         }
+        .persistent-skip-floating-btn {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          z-index: 50;
+          background: rgba(18, 25, 34, 0.85);
+          border: 1px solid var(--color-graphite-border);
+          color: var(--color-aluminum);
+          padding: 6px 14px;
+          border-radius: 4px;
+          font-size: 12px;
+          font-family: var(--font-family-mono);
+          cursor: pointer;
+          transition: all var(--transition-nav);
+        }
+        .persistent-skip-floating-btn:hover {
+          color: var(--color-amber);
+          border-color: var(--color-amber);
+          background: rgba(217, 154, 69, 0.12);
+        }
         .scene-backdrop {
           position: absolute;
           inset: 0;
@@ -167,7 +196,7 @@ export const Act0Awakening: React.FC = () => {
           background: radial-gradient(ellipse at center, rgba(217, 154, 69, 0.18) 0%, rgba(10, 14, 19, 0) 70%);
           filter: blur(40px);
           opacity: 0.2;
-          transition: opacity 1200ms ease;
+          transition: opacity 800ms ease;
         }
         .step-1 .rim-light-beam, .step-2 .rim-light-beam, .step-3 .rim-light-beam {
           opacity: 0.9;
@@ -192,7 +221,7 @@ export const Act0Awakening: React.FC = () => {
           justify-content: center;
           opacity: 0;
           transform: translateY(8px);
-          transition: all 600ms ease;
+          transition: all 400ms ease;
         }
         .step-1 .meta-row, .step-2 .meta-row, .step-3 .meta-row {
           opacity: 1;
@@ -209,7 +238,7 @@ export const Act0Awakening: React.FC = () => {
           opacity: 0.1;
           transform: scale(0.96);
           filter: drop-shadow(0 0 20px rgba(217, 154, 69, 0.15));
-          transition: all 1000ms cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 700ms cubic-bezier(0.16, 1, 0.3, 1);
         }
         .step-1 .silhouette-box, .step-2 .silhouette-box, .step-3 .silhouette-box {
           opacity: 1;
@@ -228,7 +257,7 @@ export const Act0Awakening: React.FC = () => {
           gap: 8px;
           opacity: 0;
           transform: translateY(12px);
-          transition: all 800ms cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 600ms cubic-bezier(0.16, 1, 0.3, 1);
         }
         .step-2 .hero-text-block, .step-3 .hero-text-block {
           opacity: 1;
@@ -260,9 +289,9 @@ export const Act0Awakening: React.FC = () => {
           display: flex;
           gap: 14px;
           margin-top: 8px;
-          opacity: 0;
-          transform: translateY(10px);
-          transition: all 600ms ease;
+          opacity: 0.2;
+          transform: translateY(6px);
+          transition: all 500ms ease;
         }
         .step-3 .hero-actions {
           opacity: 1;
@@ -281,6 +310,7 @@ export const Act0Awakening: React.FC = () => {
           cursor: pointer;
           transition: all var(--transition-nav);
           box-shadow: 0 4px 16px rgba(217, 154, 69, 0.35);
+          min-height: 44px;
         }
         .action-enter-btn:hover {
           background: #e6a855;
@@ -302,6 +332,7 @@ export const Act0Awakening: React.FC = () => {
           font-size: 14px;
           cursor: pointer;
           transition: all var(--transition-nav);
+          min-height: 44px;
         }
         .action-skip-btn:hover {
           border-color: var(--color-aluminum);

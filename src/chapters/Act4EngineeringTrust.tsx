@@ -13,6 +13,16 @@ interface DefenseLayer {
   tag: 'F' | 'A';
 }
 
+interface RequirementMatrixRow {
+  reqId: string;
+  hazardRef: string;
+  layer: string;
+  safetyRequirement: string;
+  moc: string;
+  status: 'Verified' | 'Mitigated' | 'Residual';
+  residualNote: string;
+}
+
 const DEFENSE_LAYERS: DefenseLayer[] = [
   {
     id: 'layer-1',
@@ -66,11 +76,56 @@ const DEFENSE_LAYERS: DefenseLayer[] = [
   }
 ];
 
+const TRACEABILITY_MATRIX: RequirementMatrixRow[] = [
+  {
+    reqId: 'REQ-SAF-01',
+    hazardRef: 'EX-01 (非对称推力丢失)',
+    layer: 'Layer 02 / Layer 03',
+    safetyRequirement: '单外置旋翼失效时，飞控系统须在 80ms 内完成剩余旋翼推力重新配平，保持俯仰滚转稳定。',
+    moc: 'MOC 5 (铁鸟台架故障注入仿真) & MOC 6 (试飞数据)',
+    status: 'Verified',
+    residualNote: '极限低空阵风剪切叠加瞬时倾转临界态尚未给出统计收敛边界。'
+  },
+  {
+    reqId: 'REQ-SAF-02',
+    hazardRef: 'EX-02 (动力电池热失控)',
+    layer: 'Layer 01',
+    safetyRequirement: '单体电芯热失控释气火焰不得在 15 分钟内蔓延至相邻模组，保证垂直迫降窗口。',
+    moc: 'MOC 3 (DO-311A 针刺破坏性实测)',
+    status: 'Verified',
+    residualNote: '全寿命周期严重机械碰撞挤压下多舱同时破损的热扩散。'
+  },
+  {
+    reqId: 'REQ-SAF-03',
+    hazardRef: 'EX-03 (传感器积冰偏置)',
+    layer: 'Layer 02 / Layer 04',
+    safetyRequirement: '动静压传感器遭受未知正偏置时，合成空速融合算法须在 2 秒内识别残差并触发交叉告警。',
+    moc: 'MOC 4 (结冰风洞与飞行员在环模拟演练)',
+    status: 'Mitigated',
+    residualNote: '罕见过冷大水滴 (SLD) 极端恶劣环境下的三通道共因污染。'
+  },
+  {
+    reqId: 'REQ-SAF-04',
+    hazardRef: 'FHA-02 (倾转机构卡阻)',
+    layer: 'Layer 02 / Layer 05',
+    safetyRequirement: '单个倾转作动筒机械卡死时，舵面控制与其余倾转机构须限制飞行器进入可控下降通道。',
+    moc: 'MOC 2 (极限载荷疲劳与非对称气动风洞试验)',
+    status: 'Residual',
+    residualNote: '公开资料未公布机械自锁解脱机构实际失效率。'
+  }
+];
+
 export const Act4EngineeringTrust: React.FC = () => {
   const { goToChapter } = useSafetyState();
   const [activeLayer, setActiveLayer] = useState<string>(DEFENSE_LAYERS[0].id);
+  const [showMatrix, setShowMatrix] = useState<boolean>(true);
+  const [matrixFilter, setMatrixFilter] = useState<'All' | 'Verified' | 'Mitigated' | 'Residual'>('All');
 
   const currentLayer = DEFENSE_LAYERS.find(l => l.id === activeLayer) || DEFENSE_LAYERS[0];
+
+  const filteredMatrix = matrixFilter === 'All'
+    ? TRACEABILITY_MATRIX
+    : TRACEABILITY_MATRIX.filter(row => row.status === matrixFilter);
 
   return (
     <section className="chapter-view" aria-labelledby="act4-title">
@@ -94,6 +149,7 @@ export const Act4EngineeringTrust: React.FC = () => {
               key={layer.id}
               className={`layer-btn ${isSelected ? 'active' : ''}`}
               onClick={() => setActiveLayer(layer.id)}
+              aria-label={`查看第 ${index + 1} 层防御：${layer.name}`}
             >
               <div className="layer-num">LAYER 0{index + 1}</div>
               <div className="layer-name">{layer.name}</div>
@@ -136,12 +192,79 @@ export const Act4EngineeringTrust: React.FC = () => {
           </div>
         </div>
 
-        <div className="matrix-footer">
-          <span className="footer-tip">⚠️ 提示：行业通用安全构型不能直接等同于 Joby S4 最终获批审定参数，均受最新官方审查限制。</span>
-          <button className="primary-cta-btn" onClick={() => goToChapter(5)}>
-            汇总全篇结论、事实与未验证清单 (进入 ACT V) →
+        <div className="matrix-toggle-row">
+          <button
+            className="toggle-matrix-btn"
+            onClick={() => setShowMatrix(!showMatrix)}
+          >
+            {showMatrix ? '收起安全需求与验证双向追溯矩阵 ▲' : '展开安全需求与验证双向追溯矩阵 ▼'}
           </button>
+          <span className="matrix-count-note">共收录 {TRACEABILITY_MATRIX.length} 条高层适航安全需求项</span>
         </div>
+      </div>
+
+      {/* 嵌入式需求-验证追溯矩阵 (Requirements-to-Verification Traceability Matrix) */}
+      {showMatrix && (
+        <div className="traceability-card">
+          <div className="matrix-header">
+            <div>
+              <h4 className="matrix-title">安全需求与适航符合性双向追溯矩阵 (Requirements Traceability Matrix)</h4>
+              <span className="matrix-sub">建立“故障情境 ➔ 安全需求 ➔ 防御层 ➔ 验证方法 (MOC) ➔ 残余不确定性”完整链条</span>
+            </div>
+            <div className="matrix-filters">
+              {(['All', 'Verified', 'Mitigated', 'Residual'] as const).map(f => (
+                <button
+                  key={f}
+                  className={`matrix-filter-pill ${matrixFilter === f ? 'active' : ''}`}
+                  onClick={() => setMatrixFilter(f)}
+                >
+                  {f === 'All' ? '全部需求' : f === 'Verified' ? '已验证闭环' : f === 'Mitigated' ? '已采取措施' : '残余不确定性'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="table-responsive">
+            <table className="matrix-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '120px' }}>需求编号</th>
+                  <th style={{ width: '150px' }}>针对危险源</th>
+                  <th style={{ width: '130px' }}>防御层</th>
+                  <th>适航安全需求条目</th>
+                  <th>符合性验证手段 (MOC)</th>
+                  <th style={{ width: '100px' }}>状态</th>
+                  <th>残余不确定性说明</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredMatrix.map(row => (
+                  <tr key={row.reqId}>
+                    <td className="req-id-cell">{row.reqId}</td>
+                    <td><span className="hazard-ref-tag">{row.hazardRef}</span></td>
+                    <td><span className="layer-pill">{row.layer}</span></td>
+                    <td>{row.safetyRequirement}</td>
+                    <td className="moc-text">{row.moc}</td>
+                    <td>
+                      <span className={`status-badge ${row.status.toLowerCase()}`}>
+                        {row.status === 'Verified' ? '已验证' : row.status === 'Mitigated' ? '已缓解' : '残余未知'}
+                      </span>
+                    </td>
+                    <td className="residual-text">{row.residualNote}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* 底部跳转导引 */}
+      <div className="chapter-bottom-bar">
+        <span className="footer-tip">⚠️ 提示：行业通用安全构型不能直接等同于 Joby S4 最终获批审定参数，均受最新官方审查限制。</span>
+        <button className="primary-cta-btn" onClick={() => goToChapter(5)}>
+          汇总全篇结论、事实与未验证清单 (进入 ACT V) →
+        </button>
       </div>
 
       <style>{`
@@ -157,6 +280,7 @@ export const Act4EngineeringTrust: React.FC = () => {
           border-radius: 6px;
           text-align: left;
           transition: all var(--transition-nav);
+          min-height: 44px;
         }
         .layer-btn:hover {
           border-color: var(--color-aluminum);
@@ -273,7 +397,152 @@ export const Act4EngineeringTrust: React.FC = () => {
           color: var(--color-aluminum);
           font-family: var(--font-family-mono);
         }
-        .matrix-footer {
+        .matrix-toggle-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-top: 1px solid var(--color-graphite-border);
+          padding-top: 16px;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .toggle-matrix-btn {
+          background: rgba(217, 154, 69, 0.12);
+          border: 1px solid var(--color-amber);
+          color: var(--color-amber);
+          padding: 8px 16px;
+          border-radius: 5px;
+          font-weight: 600;
+          font-size: 13px;
+          transition: all var(--transition-nav);
+        }
+        .toggle-matrix-btn:hover {
+          background: var(--color-amber);
+          color: var(--color-graphite);
+        }
+        .matrix-count-note {
+          font-size: 12.5px;
+          color: var(--color-aluminum-dim);
+        }
+        .traceability-card {
+          background: var(--color-graphite-surface);
+          border: 1px solid var(--color-graphite-border);
+          border-radius: 8px;
+          padding: 22px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .matrix-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+        .matrix-title {
+          font-size: 16px;
+          color: var(--color-warm-white);
+          font-weight: 700;
+        }
+        .matrix-sub {
+          font-size: 12px;
+          color: var(--color-aluminum);
+          display: block;
+          margin-top: 2px;
+        }
+        .matrix-filters {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+        .matrix-filter-pill {
+          padding: 5px 10px;
+          border-radius: 4px;
+          font-size: 12px;
+          background: var(--color-graphite-elevated);
+          border: 1px solid var(--color-graphite-border);
+          color: var(--color-aluminum);
+          transition: all var(--transition-nav);
+        }
+        .matrix-filter-pill.active {
+          background: rgba(217, 154, 69, 0.18);
+          border-color: var(--color-amber);
+          color: var(--color-amber);
+          font-weight: 600;
+        }
+        .table-responsive {
+          overflow-x: auto;
+        }
+        .matrix-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 13px;
+          text-align: left;
+        }
+        .matrix-table th {
+          background: var(--color-graphite-elevated);
+          color: var(--color-aluminum);
+          padding: 10px 12px;
+          border-bottom: 2px solid var(--color-graphite-border);
+          font-weight: 600;
+          white-space: nowrap;
+        }
+        .matrix-table td {
+          padding: 12px;
+          border-bottom: 1px solid var(--color-graphite-border);
+          color: var(--color-warm-white);
+          line-height: 1.5;
+        }
+        .req-id-cell {
+          font-family: var(--font-family-mono);
+          font-weight: 700;
+          color: var(--color-amber);
+        }
+        .hazard-ref-tag {
+          font-size: 11px;
+          font-family: var(--font-family-mono);
+          background: rgba(184, 193, 200, 0.12);
+          padding: 3px 6px;
+          border-radius: 3px;
+        }
+        .layer-pill {
+          font-size: 11px;
+          color: #8ec2e6;
+          font-family: var(--font-family-mono);
+        }
+        .moc-text {
+          font-size: 12.5px;
+          color: var(--color-aluminum);
+        }
+        .status-badge {
+          padding: 3px 8px;
+          border-radius: 3px;
+          font-size: 11px;
+          font-weight: 700;
+          font-family: var(--font-family-mono);
+          display: inline-block;
+        }
+        .status-badge.verified {
+          background: rgba(78, 122, 148, 0.25);
+          color: #8ec2e6;
+          border: 1px solid rgba(78, 122, 148, 0.45);
+        }
+        .status-badge.mitigated {
+          background: rgba(217, 154, 69, 0.2);
+          color: #f3c47e;
+          border: 1px solid rgba(217, 154, 69, 0.45);
+        }
+        .status-badge.residual {
+          background: rgba(185, 76, 68, 0.25);
+          color: #f1928b;
+          border: 1px solid rgba(185, 76, 68, 0.45);
+        }
+        .residual-text {
+          font-size: 12.5px;
+          color: #f1928b;
+        }
+        .chapter-bottom-bar {
           display: flex;
           justify-content: space-between;
           align-items: center;

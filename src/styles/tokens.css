@@ -4,10 +4,10 @@
   --color-graphite: #0A0E13;      /* 深石墨 - 主背景 */
   --color-graphite-surface: #121921; /* 卡片/表面层 */
   --color-graphite-elevated: #1B2430; /* 悬浮弹窗/抽屉 */
-  --color-graphite-border: rgba(184, 193, 200, 0.18);
+  --color-graphite-border: rgba(184, 193, 200, 0.22);
   
   --color-aluminum: #B8C1C8;      /* 铝灰 - 次要文字与技术线框 */
-  --color-aluminum-dim: #707E8B;  /* 弱化标注 */
+  --color-aluminum-dim: #98A6B5;  /* 弱化标注 - 经 WCAG AA 增高对比度 */
   --color-warm-white: #F2EFE7;    /* 暖白 - 关键标题与正文 */
   
   --color-amber: #D99A45;         /* 警示琥珀 - 关注、中间态、主视觉光晕 */
@@ -20,20 +20,20 @@
   --color-tech-blue-dim: rgba(78, 122, 148, 0.2);
 
   /* 事实标签色彩语义 */
-  --tag-fact-bg: rgba(78, 122, 148, 0.2);
-  --tag-fact-text: #8EC2E6;
-  --tag-assumption-bg: rgba(217, 154, 69, 0.18);
-  --tag-assumption-text: #F3C47E;
-  --tag-demo-bg: rgba(184, 193, 200, 0.15);
-  --tag-demo-text: #D5DFE6;
-  --tag-unverified-bg: rgba(185, 76, 68, 0.2);
-  --tag-unverified-text: #F1928B;
+  --tag-fact-bg: rgba(78, 122, 148, 0.25);
+  --tag-fact-text: #96CEF5;
+  --tag-assumption-bg: rgba(217, 154, 69, 0.22);
+  --tag-assumption-text: #F7CB8A;
+  --tag-demo-bg: rgba(184, 193, 200, 0.18);
+  --tag-demo-text: #DEE7ED;
+  --tag-unverified-bg: rgba(185, 76, 68, 0.25);
+  --tag-unverified-text: #F79C95;
 
   /* 动效时长规范 (Timing Tokens) */
   --ease-precision: cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-nav: 220ms var(--ease-precision);
-  --transition-panel: 280ms var(--ease-precision);
-  --transition-scene: 800ms var(--ease-precision);
+  --transition-nav: 200ms var(--ease-precision);
+  --transition-panel: 260ms var(--ease-precision);
+  --transition-scene: 700ms var(--ease-precision);
 
   /* 字体规范 (纯本地回退，零外网 CDN) */
   --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;

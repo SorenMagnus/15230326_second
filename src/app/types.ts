@@ -32,6 +32,7 @@ export interface GlobalSafetyState {
   openPanel: PanelType;
   motionMode: MotionMode;
   qualityMode: QualityMode;
+  isAudioMuted: boolean; // B3 规范：默认静音，始终保留关闭声音/静音状态
 }
 
 export type Action =
@@ -44,4 +45,5 @@ export type Action =
   | { type: 'SET_PANEL'; payload: PanelType }
   | { type: 'TOGGLE_MOTION_MODE' }
   | { type: 'TOGGLE_QUALITY_MODE' }
+  | { type: 'TOGGLE_AUDIO' }
   | { type: 'RESET_STATE' };

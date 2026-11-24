@@ -1,8 +1,19 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { GlobalSafetyState, Action, ChapterId } from './types';
 
+function parseHashToChapter(): ChapterId {
+  if (typeof window === 'undefined') return 0;
+  const hash = window.location.hash.toLowerCase();
+  const match = hash.match(/#act([0-5])/);
+  if (match) {
+    const parsed = parseInt(match[1], 10);
+    if (parsed >= 0 && parsed <= 5) return parsed as ChapterId;
+  }
+  return 0;
+}
+
 const initialState: GlobalSafetyState = {
-  chapter: 0,
+  chapter: parseHashToChapter(),
   flightPhase: 'climb',
   selectedSubsystem: 'propulsion',
   selectedScenario: 'EX-01',
@@ -11,17 +22,18 @@ const initialState: GlobalSafetyState = {
   openPanel: 'none',
   motionMode: 'normal',
   qualityMode: 'high',
+  isAudioMuted: true, // B3 规范：默认完全静音
 };
 
 function stateReducer(state: GlobalSafetyState, action: Action): GlobalSafetyState {
   switch (action.type) {
     case 'SET_CHAPTER': {
-      if (state.chapter === action.payload) return state; // 幂等检查：重复点击同一章节不产生额外开销
+      if (state.chapter === action.payload) return state; // 幂等性防护
       return {
         ...state,
         chapter: action.payload,
-        openPanel: 'none',       // 切幕立即收起侧边抽屉，防止遮挡悬挂
-        activeFaultNode: null,   // 清理前序激活节点
+        openPanel: 'none',       // 章节切换时立即关闭弹窗/抽屉，消除残留遮罩
+        activeFaultNode: null,   // 重置临时选中的故障节点
       };
     }
     case 'SET_FLIGHT_PHASE':
@@ -55,6 +67,8 @@ function stateReducer(state: GlobalSafetyState, action: Action): GlobalSafetySta
       const nextQuality = state.qualityMode === 'high' ? 'eco' : 'high';
       return { ...state, qualityMode: nextQuality };
     }
+    case 'TOGGLE_AUDIO':
+      return { ...state, isAudioMuted: !state.isAudioMuted };
     case 'RESET_STATE':
       return initialState;
     default:
@@ -73,10 +87,36 @@ const StateContext = createContext<StateContextType | null>(null);
 export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(stateReducer, initialState);
 
-  // 监听浏览器系统级的动效偏好 (prefers-reduced-motion)
+  // 1. 同步 URL Hash 与浏览器前进/后退历史 (支持刷新保持与外部直达)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const targetCh = parseHashToChapter();
+      if (targetCh !== state.chapter) {
+        dispatch({ type: 'SET_CHAPTER', payload: targetCh });
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [state.chapter]);
+
+  // 2. 切幕时同步更新 URL Hash 并平滑复位视口
+  useEffect(() => {
+    const expectedHash = `#act${state.chapter}`;
+    if (window.location.hash !== expectedHash) {
+      window.history.pushState(null, '', expectedHash);
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    const mainEl = document.getElementById('main-content');
+    if (mainEl) {
+      mainEl.focus();
+    }
+  }, [state.chapter]);
+
+  // 3. 监听浏览器系统级的动效偏好 (prefers-reduced-motion)
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (mediaQuery.matches) {
+    if (mediaQuery.matches && state.motionMode !== 'reduced') {
       dispatch({ type: 'TOGGLE_MOTION_MODE' });
     }
     const listener = (e: MediaQueryListEvent) => {
@@ -88,16 +128,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return () => mediaQuery.removeEventListener('change', listener);
   }, []);
 
-  // 切幕时即时瞬移滚回顶部并重置视口，避免长页面残余滚动位置
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    const mainEl = document.getElementById('main-content');
-    if (mainEl) {
-      mainEl.focus();
-    }
-  }, [state.chapter]);
-
-  // 同步 CSS 类到 body 根元素
+  // 4. 同步 CSS 模式类到 body 根元素
   useEffect(() => {
     if (state.motionMode === 'reduced') {
       document.body.classList.add('reduced-motion');
@@ -114,7 +145,7 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [state.qualityMode]);
 
-  // 全局键盘快捷键导航 (0-5 键切幕，Esc 键跳过或关闭面板)
+  // 5. 全局键盘快捷键导航 (0-5 键切幕，Esc 键跳过或关闭面板)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
