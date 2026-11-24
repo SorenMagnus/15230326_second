@@ -1,0 +1,66 @@
+/* BEYOND GRAVITY 设计系统与原子令牌 (Design Tokens) */
+:root {
+  /* 官方色彩体系 (Palette) */
+  --color-graphite: #0A0E13;      /* 深石墨 - 主背景 */
+  --color-graphite-surface: #121921; /* 卡片/表面层 */
+  --color-graphite-elevated: #1B2430; /* 悬浮弹窗/抽屉 */
+  --color-graphite-border: rgba(184, 193, 200, 0.18);
+  
+  --color-aluminum: #B8C1C8;      /* 铝灰 - 次要文字与技术线框 */
+  --color-aluminum-dim: #707E8B;  /* 弱化标注 */
+  --color-warm-white: #F2EFE7;    /* 暖白 - 关键标题与正文 */
+  
+  --color-amber: #D99A45;         /* 警示琥珀 - 关注、中间态、主视觉光晕 */
+  --color-amber-glow: rgba(217, 154, 69, 0.25);
+  
+  --color-risk-red: #B94C44;      /* 危险深朱红 - 严禁乱用，仅表严重风险与失效 */
+  --color-risk-red-glow: rgba(185, 76, 68, 0.25);
+  
+  --color-tech-blue: #4E7A94;     /* 中性辅助技术蓝 - 无安全倾向的工程信息 */
+  --color-tech-blue-dim: rgba(78, 122, 148, 0.2);
+
+  /* 事实标签色彩语义 */
+  --tag-fact-bg: rgba(78, 122, 148, 0.2);
+  --tag-fact-text: #8EC2E6;
+  --tag-assumption-bg: rgba(217, 154, 69, 0.18);
+  --tag-assumption-text: #F3C47E;
+  --tag-demo-bg: rgba(184, 193, 200, 0.15);
+  --tag-demo-text: #D5DFE6;
+  --tag-unverified-bg: rgba(185, 76, 68, 0.2);
+  --tag-unverified-text: #F1928B;
+
+  /* 动效时长规范 (Timing Tokens) */
+  --ease-precision: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-nav: 220ms var(--ease-precision);
+  --transition-panel: 280ms var(--ease-precision);
+  --transition-scene: 800ms var(--ease-precision);
+
+  /* 字体规范 (纯本地回退，零外网 CDN) */
+  --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+  --font-family-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-family-cinematic: "Arial Black", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* 响应式断点间距基线 */
+  --header-height: 56px;
+  --max-content-width: 1400px;
+}
+
+/* 动效抑制模式 (prefers-reduced-motion 或手动切换) */
+body.reduced-motion *,
+body.reduced-motion *::before,
+body.reduced-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* 低功耗/低性能模式 (移除发光滤镜与重绘开销) */
+body.eco-mode {
+  --color-amber-glow: transparent !important;
+  --color-risk-red-glow: transparent !important;
+}
+body.eco-mode * {
+  text-shadow: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
