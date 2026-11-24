@@ -3,6 +3,7 @@ import { useSafetyState } from '../app/state';
 import { SubsystemId } from '../app/types';
 import { EvidenceBadge } from '../components/EvidenceBadge';
 import { FmeaTable } from '../components/FmeaTable';
+import { AircraftAnatomySvg } from '../visuals/AircraftAnatomySvg';
 
 interface SubsystemData {
   id: SubsystemId;
@@ -90,6 +91,10 @@ export const Act2InsideMachine: React.FC = () => {
   const [showFmea, setShowFmea] = useState(false);
   const activeSub = SUBSYSTEMS.find(s => s.id === state.selectedSubsystem) || SUBSYSTEMS[0];
 
+  const handleSelectSubsystem = (id: SubsystemId) => {
+    dispatch({ type: 'SET_SUBSYSTEM', payload: id });
+  };
+
   return (
     <section className="chapter-view" aria-labelledby="act2-title">
       <div className="chapter-header">
@@ -97,9 +102,9 @@ export const Act2InsideMachine: React.FC = () => {
           <span className="chapter-code">ACT II · INSIDE THE MACHINE</span>
           <EvidenceBadge type="F" text="子系统架构" sourceId="J1" />
         </div>
-        <h2 id="act2-title" className="chapter-heading">机器内部：六大核心子系统技术剖析</h2>
+        <h2 id="act2-title" className="chapter-heading">机器内部：六大核心子系统分层技术解剖</h2>
         <p className="chapter-desc">
-          打破“未来飞行汽车”的黑盒。探索分布式电力推进（DEP）、高压能量链路与四余度飞控之间的物理拓扑与安全防护屏障。
+          打破“未来飞行汽车”的黑盒。探索分布式电力推进（DEP）、高压能量链路与四余度飞控之间的物理拓扑与安全防护屏障。点击下方各部件或交互图热点即可无缝联动。
         </p>
       </div>
 
@@ -113,7 +118,7 @@ export const Act2InsideMachine: React.FC = () => {
               role="tab"
               aria-selected={isSelected}
               className={`sub-tab-btn ${isSelected ? 'active' : ''}`}
-              onClick={() => dispatch({ type: 'SET_SUBSYSTEM', payload: sub.id })}
+              onClick={() => handleSelectSubsystem(sub.id)}
             >
               <span className="sub-en">{sub.en}</span>
               <span className="sub-name">{sub.name}</span>
@@ -122,74 +127,20 @@ export const Act2InsideMachine: React.FC = () => {
         })}
       </div>
 
-      {/* 2D 矢量技术架构剖析图与交互信息区 */}
+      {/* 2D 矢量分层技术解剖与交互热点区 */}
       <div className="subsystem-body-grid">
         <div className="diagram-container">
           <div className="diagram-header">
-            <span className="diagram-label">2D 矢量技术解剖拓扑</span>
+            <span className="diagram-label">高精度 2D 分层矢量解剖 (点击图内热点切换)</span>
             <EvidenceBadge type={activeSub.tag} sourceId={activeSub.source} />
           </div>
 
-          <div className="svg-frame" role="img" aria-label={`子系统拓扑图 - ${activeSub.name}`}>
-            <svg viewBox="0 0 600 340" className="tech-schematic-svg">
-              <rect width="600" height="340" fill="#0E141B" rx="8" stroke="rgba(184, 193, 200, 0.15)" />
-              <defs>
-                <pattern id="smallGrid" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(184, 193, 200, 0.04)" strokeWidth="0.5" />
-                </pattern>
-              </defs>
-              <rect width="600" height="340" fill="url(#smallGrid)" />
-
-              <ellipse cx="300" cy="170" rx="220" ry="80" fill="none" stroke="rgba(184, 193, 200, 0.2)" strokeWidth="1" strokeDasharray="4 4" />
-              
-              {activeSub.id === 'propulsion' && (
-                <g className="highlight-group">
-                  <circle cx="120" cy="130" r="28" fill="rgba(217, 154, 69, 0.2)" stroke="#D99A45" strokeWidth="2" />
-                  <text x="120" y="135" fill="#F2EFE7" fontSize="11" textAnchor="middle">旋翼 #1 (左前)</text>
-                  <circle cx="480" cy="130" r="28" fill="rgba(217, 154, 69, 0.2)" stroke="#D99A45" strokeWidth="2" />
-                  <text x="480" y="135" fill="#F2EFE7" fontSize="11" textAnchor="middle">旋翼 #6 (右前)</text>
-                  <circle cx="210" cy="110" r="24" fill="rgba(217, 154, 69, 0.15)" stroke="#D99A45" strokeWidth="1.5" />
-                  <circle cx="390" cy="110" r="24" fill="rgba(217, 154, 69, 0.15)" stroke="#D99A45" strokeWidth="1.5" />
-                  <circle cx="260" cy="220" r="22" fill="rgba(217, 154, 69, 0.15)" stroke="#D99A45" strokeWidth="1.5" />
-                  <circle cx="340" cy="220" r="22" fill="rgba(217, 154, 69, 0.15)" stroke="#D99A45" strokeWidth="1.5" />
-                  <line x1="120" y1="130" x2="480" y2="130" stroke="#D99A45" strokeWidth="1" strokeDasharray="3 3" />
-                </g>
-              )}
-
-              {activeSub.id === 'power' && (
-                <g className="highlight-group">
-                  <rect x="230" y="140" width="140" height="60" rx="6" fill="rgba(217, 154, 69, 0.25)" stroke="#D99A45" strokeWidth="2" />
-                  <text x="300" y="174" fill="#F2EFE7" fontSize="12" textAnchor="middle" fontWeight="bold">高压主电池舱 (800V)</text>
-                  <line x1="230" y1="170" x2="140" y2="170" stroke="#D99A45" strokeWidth="1.5" />
-                  <line x1="370" y1="170" x2="460" y2="170" stroke="#D99A45" strokeWidth="1.5" />
-                  <rect x="110" y="155" width="30" height="30" fill="rgba(184, 193, 200, 0.2)" stroke="#B8C1C8" />
-                  <rect x="460" y="155" width="30" height="30" fill="rgba(184, 193, 200, 0.2)" stroke="#B8C1C8" />
-                </g>
-              )}
-
-              {activeSub.id === 'avionics' && (
-                <g className="highlight-group">
-                  <rect x="250" y="90" width="100" height="50" rx="4" fill="rgba(78, 122, 148, 0.3)" stroke="#4E7A94" strokeWidth="2" />
-                  <text x="300" y="120" fill="#8EC2E6" fontSize="12" textAnchor="middle" fontWeight="bold">四余度 FCC 主控</text>
-                  <circle cx="270" cy="115" r="4" fill="#D99A45" />
-                  <circle cx="290" cy="115" r="4" fill="#D99A45" />
-                  <circle cx="310" cy="115" r="4" fill="#D99A45" />
-                  <circle cx="330" cy="115" r="4" fill="#D99A45" />
-                  <line x1="300" y1="140" x2="300" y2="230" stroke="#4E7A94" strokeWidth="1" strokeDasharray="2 2" />
-                </g>
-              )}
-
-              {activeSub.id !== 'propulsion' && activeSub.id !== 'power' && activeSub.id !== 'avionics' && (
-                <g className="highlight-group">
-                  <circle cx="300" cy="170" r="60" fill="rgba(184, 193, 200, 0.15)" stroke="#B8C1C8" strokeWidth="2" />
-                  <text x="300" y="175" fill="#F2EFE7" fontSize="13" textAnchor="middle">{activeSub.name}</text>
-                  <line x1="300" y1="110" x2="300" y2="60" stroke="#B8C1C8" strokeWidth="1" />
-                  <line x1="300" y1="230" x2="300" y2="280" stroke="#B8C1C8" strokeWidth="1" />
-                </g>
-              )}
-            </svg>
-          </div>
-          <p className="diagram-caption">图 2.1: {activeSub.name} 物理拓扑与隔离边界架构</p>
+          <AircraftAnatomySvg
+            activeSubsystem={state.selectedSubsystem}
+            onSelectSubsystem={handleSelectSubsystem}
+          />
+          
+          <p className="diagram-caption">图 2.1: {activeSub.name} 空间布置、总线拓扑与物理隔离边界</p>
         </div>
 
         {/* 详细参数与失效防护联动 */}
@@ -265,7 +216,7 @@ export const Act2InsideMachine: React.FC = () => {
         }
         .subsystem-body-grid {
           display: grid;
-          grid-template-columns: 1.1fr 1fr;
+          grid-template-columns: 1.2fr 1fr;
           gap: 20px;
         }
         @media (max-width: 900px) {
@@ -291,14 +242,6 @@ export const Act2InsideMachine: React.FC = () => {
           font-size: 13px;
           color: var(--color-aluminum);
           font-family: var(--font-family-mono);
-        }
-        .svg-frame {
-          width: 100%;
-        }
-        .tech-schematic-svg {
-          width: 100%;
-          height: auto;
-          display: block;
         }
         .diagram-caption {
           font-size: 12px;
