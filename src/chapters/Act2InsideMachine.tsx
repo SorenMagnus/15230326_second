@@ -88,7 +88,7 @@ const SUBSYSTEMS: SubsystemData[] = [
 
 export const Act2InsideMachine: React.FC = () => {
   const { state, dispatch, goToChapter } = useSafetyState();
-  const [showFmea, setShowFmea] = useState(false);
+  const [showFmea, setShowFmea] = useState(true);
   const activeSub = SUBSYSTEMS.find(s => s.id === state.selectedSubsystem) || SUBSYSTEMS[0];
 
   const handleSelectSubsystem = (id: SubsystemId) => {

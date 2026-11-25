@@ -83,7 +83,7 @@ const TRACEABILITY_MATRIX: RequirementMatrixRow[] = [
     layer: 'Layer 02 / Layer 03',
     safetyRequirement: '单外置旋翼失效时，飞控系统须在 80ms 内完成剩余旋翼推力重新配平，保持俯仰滚转稳定。',
     moc: 'MOC 5 (铁鸟台架故障注入仿真) & MOC 6 (试飞数据)',
-    status: 'Verified',
+    status: 'Mitigated',
     residualNote: '极限低空阵风剪切叠加瞬时倾转临界态尚未给出统计收敛边界。'
   },
   {
@@ -92,7 +92,7 @@ const TRACEABILITY_MATRIX: RequirementMatrixRow[] = [
     layer: 'Layer 01',
     safetyRequirement: '单体电芯热失控释气火焰不得在 15 分钟内蔓延至相邻模组，保证垂直迫降窗口。',
     moc: 'MOC 3 (DO-311A 针刺破坏性实测)',
-    status: 'Verified',
+    status: 'Mitigated',
     residualNote: '全寿命周期严重机械碰撞挤压下多舱同时破损的热扩散。'
   },
   {
@@ -112,6 +112,24 @@ const TRACEABILITY_MATRIX: RequirementMatrixRow[] = [
     moc: 'MOC 2 (极限载荷疲劳与非对称气动风洞试验)',
     status: 'Residual',
     residualNote: '公开资料未公布机械自锁解脱机构实际失效率。'
+  },
+  {
+    reqId: 'REQ-SAF-05',
+    hazardRef: 'FHA-03 (主高压母线短路)',
+    layer: 'Layer 01 / Layer 02',
+    safetyRequirement: '主高压配电母线单通道接地短路时，配电保护须隔离故障通道，剩余母线独立维持巡航平飞与优先降落所需功率。',
+    moc: 'MOC 2 (配电故障注入仿真与单母线降级飞行模拟)',
+    status: 'Mitigated',
+    residualNote: '双母线共因失效（同舱段火灾、冷却共因）场景下的功率冗余尚未量化验证。'
+  },
+  {
+    reqId: 'REQ-SAF-06',
+    hazardRef: 'STPA UCA-03 (前倾指令时机错误)',
+    layer: 'Layer 02 / Layer 04',
+    safetyRequirement: '离地高度与空速未同时达到过渡走廊下限前，飞控须抑制向巡航构型前倾的倾转指令，并保留机组否决与一键复飞通道。',
+    moc: 'MOC 4 (飞行员在环模拟与过渡边界遍历仿真)',
+    status: 'Mitigated',
+    residualNote: '近地障碍物数据库完备性与高度判定误差边界依赖外部数据，未在本研究内验证。'
   }
 ];
 
