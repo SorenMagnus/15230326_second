@@ -236,7 +236,7 @@ export const Act4EngineeringTrust: React.FC = () => {
                   className={`matrix-filter-pill ${matrixFilter === f ? 'active' : ''}`}
                   onClick={() => setMatrixFilter(f)}
                 >
-                  {f === 'All' ? '全部需求' : f === 'Verified' ? '已验证闭环' : f === 'Mitigated' ? '已采取措施' : '残余不确定性'}
+                  {f === 'All' ? '全部需求' : f === 'Verified' ? '已验证（暂无）' : f === 'Mitigated' ? '已采取措施' : '残余不确定性'}
                 </button>
               ))}
             </div>
